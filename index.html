@@ -420,7 +420,7 @@ function tagHtml(matkul){
 }
 
 /* ===== API CLIENT (Laravel backend) ===== */
-const API_BASE = 'https://agenda-kuliah-production.up.railway.app/'; 
+const API_BASE = 'https://agenda-kuliah-production.up.railway.app/api'; 
 let authToken = localStorage.getItem('agenda-token') || null;
 
 async function apiFetch(path, opts={}){
