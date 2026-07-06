@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Agenda Kuliah</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#C46584">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFFFF; --blush:#FDF3F5; --pink:#F6A8BE; --pink-soft:#FBDCE5;
+    --rose:#C46584; --ink:#3A2A31; --ink-soft:#8A6E76; --line:#E8DCE1;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Plus Jakarta Sans',sans-serif;background:var(--blush);color:var(--ink);min-height:100vh;}
+  .hidden{display:none !important;}
+
+  /* LOGIN */
+  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, var(--pink-soft) 0, transparent 45%),radial-gradient(circle at 80% 80%, var(--pink-soft) 0, transparent 45%),var(--blush);padding:20px;}
+  .login-card{position:relative;background:var(--paper);width:100%;max-width:340px;padding:44px 30px 34px;border-radius:18px;box-shadow:0 20px 60px rgba(196,101,132,.18);text-align:center;}
+  .login-tape{position:absolute;top:-14px;left:50%;width:90px;height:26px;background:repeating-linear-gradient(45deg, var(--pink) 0 7px, var(--pink-soft) 7px 14px);transform:translateX(-50%) rotate(-2deg);box-shadow:0 3px 6px rgba(0,0,0,.12);border-radius:2px;}
+  .login-card h1{font-family:'Fraunces',serif;font-size:24px;margin:6px 0 4px;color:var(--rose);}
+  .login-sub{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
+  .login-card input{width:100%;font-size:14px;padding:11px 14px;border-radius:10px;border:1px solid var(--line);background:var(--blush);color:var(--ink);outline:none;margin-bottom:10px;}
+  .login-card input:focus{border-color:var(--rose);}
+  .login-card button{width:100%;font-weight:700;font-size:14px;padding:11px 0;border-radius:10px;border:none;background:var(--rose);color:#fff;cursor:pointer;margin-top:6px;}
+  .login-card button:hover{background:#a94f6c;}
+  .login-err{color:#b3435a;font-size:12px;margin-top:10px;min-height:14px;}
+
+  /* LAYOUT */
+  .app{display:flex;min-height:100vh;max-width:1180px;margin:0 auto;}
+  .sidebar{width:210px;flex-shrink:0;padding:28px 0 28px 16px;display:flex;flex-direction:column;gap:6px;}
+  .profile-box{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;padding:12px 14px;margin-bottom:18px;}
+  .avatar{width:36px;height:36px;flex-shrink:0;border-radius:50%;background:var(--pink);color:#fff;font-family:'Fraunces',serif;font-weight:600;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .profile-meta{overflow:hidden;flex:1;}
+  .profile-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .profile-hp{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);}
+  .logout-btn{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:11px;text-decoration:underline;padding:0;margin-top:2px;}
+  .logout-btn:hover{color:var(--rose);}
+  .tab{position:relative;background:var(--paper);border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;padding:13px 18px;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;gap:10px;}
+  .tab::before{content:'';position:absolute;left:10px;top:50%;width:6px;height:6px;border-radius:50%;background:var(--blush);border:1px solid var(--line);transform:translateY(-50%);}
+  .tab.active{background:var(--paper);color:var(--rose);box-shadow:0 4px 14px rgba(196,101,132,.12);}
+  .tab.active::after{content:'';position:absolute;right:-1px;top:0;bottom:0;width:4px;background:var(--pink);}
+  .tab:not(.active):hover{color:var(--rose);}
+  .reminder-btn{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;margin-top:auto;}
+  .reminder-btn.on{color:var(--rose);background:var(--pink-soft);}
+  .reminder-note{font-size:10px;color:var(--ink-soft);padding:8px 14px 0;line-height:1.4;}
+
+  .main{flex:1;min-width:0;background:var(--paper);border-radius:22px;margin:24px 24px 24px 0;padding:34px 38px;box-shadow:0 10px 40px rgba(196,101,132,.08);position:relative;overflow:hidden;}
+  .section-title{position:relative;display:inline-block;font-family:'Fraunces',serif;font-size:25px;font-weight:600;margin:0 0 6px;padding-top:14px;}
+  .section-title::before{content:'';position:absolute;top:-6px;left:-14px;width:calc(100% + 28px);height:20px;background:repeating-linear-gradient(45deg, var(--pink) 0 8px, var(--pink-soft) 8px 16px);opacity:.85;transform:rotate(-1.5deg);border-radius:2px;box-shadow:0 2px 4px rgba(0,0,0,.08);}
+  .subtext{color:var(--ink-soft);font-size:13.5px;margin-bottom:24px;}
+
+  .addbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px;padding:14px;background:var(--blush);border-radius:14px;border:1px dashed var(--line);}
+  .addbar input,.addbar select{font-size:13.5px;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--ink);outline:none;}
+  .addbar input:focus,.addbar select:focus{border-color:var(--rose);}
+  .addbar button{font-weight:600;font-size:13.5px;padding:9px 18px;border-radius:9px;border:none;background:var(--rose);color:#fff;cursor:pointer;}
+  .addbar button:hover{background:#a94f6c;}
+  .addbar.editing{border:1px solid var(--rose);background:#fff5f8;}
+  .addbar-notes{flex-direction:column;align-items:stretch;}
+  .addbar-notes input{width:100%;}
+
+  /* RICH EDITOR */
+  .rte-toolbar{display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:9px 9px 0 0;padding:7px 8px;}
+  .rte-btn{border:none;background:var(--blush);color:var(--ink);font-size:13px;padding:6px 9px;border-radius:7px;cursor:pointer;}
+  .rte-btn:hover{background:var(--pink-soft);}
+  .rte-swatch{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;}
+  .rte-color-native{width:26px;height:26px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none;}
+  .rte-sep{width:1px;height:20px;background:var(--line);margin:0 2px;}
+  .rte-editor{min-height:130px;max-height:340px;overflow-y:auto;border:1px solid var(--line);border-top:none;border-radius:0 0 9px 9px;padding:14px;font-size:13.5px;line-height:1.65;background:var(--paper);outline:none;}
+  .rte-editor:empty::before{content:attr(data-placeholder);color:#bda2ab;}
+  .rte-editor table{border-collapse:collapse;margin:8px 0;}
+  .rte-editor td{border:2px solid var(--rose);padding:6px 10px;min-width:50px;}
+  .rte-editor img{max-width:100%;border-radius:8px;margin:6px 0;display:block;}
+  .rte-hint{font-size:11px;color:var(--ink-soft);margin:6px 2px 0;}
+  .tbl-popover{display:inline-flex;align-items:center;gap:5px;background:var(--blush);padding:4px 8px;border-radius:8px;}
+  .tbl-input{width:42px;padding:5px;border-radius:6px;border:1px solid var(--line);text-align:center;font-size:13px;}
+  .gallery-thumb{width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;}
+
+  /* DRAWING PAD OVERLAY */
+  .draw-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,49,.45);z-index:60;align-items:center;justify-content:center;padding:16px;}
+  .draw-overlay.open{display:flex;}
+  .draw-box{background:var(--paper);border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(58,42,49,.3);max-width:96vw;}
+  .draw-box h3{font-family:'Fraunces',serif;margin:0 0 10px;font-size:17px;color:var(--rose);}
+  .draw-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .draw-toolbar input[type=range]{width:100px;}
+  canvas#draw-canvas{border:1px solid var(--line);border-radius:10px;background:#fff;touch-action:none;cursor:crosshair;max-width:100%;}
+  .draw-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;}
+  .draw-actions button{font-weight:600;font-size:13px;padding:9px 16px;border-radius:9px;border:none;cursor:pointer;}
+  .btn-cancel{background:var(--blush);color:var(--ink-soft);}
+  .btn-clear{background:var(--pink-soft);color:var(--rose);}
+  .btn-insert{background:var(--rose);color:#fff;}
+
+  /* JADWAL */
+  .day-group{margin-bottom:22px;}
+  .day-label{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .day-label::after{content:'';flex:1;height:1px;background:var(--line);}
+  .class-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);margin-bottom:8px;background:var(--blush);}
+  .class-time{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--rose);background:#fff;border:1px solid var(--pink-soft);padding:5px 9px;border-radius:8px;white-space:nowrap;}
+  .class-info{flex:1;min-width:0;}
+  .class-info b{font-size:14.5px;}
+  .class-info div{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .del-btn{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:8px;}
+  .del-btn:hover{color:var(--rose);background:var(--pink-soft);}
+  .edit-btn{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:8px;}
+  .edit-btn:hover{color:var(--rose);background:var(--pink-soft);}
+
+  /* TAG */
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;margin-bottom:6px;color:#fff;white-space:nowrap;}
+
+  /* SEARCH */
+  .search-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--blush);}
+  .search-bar input{flex:1;border:none;background:transparent;outline:none;font-size:13.5px;color:var(--ink);}
+
+  /* CATATAN GRID */
+  .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
+  .note-card{position:relative;padding:22px 16px 20px;border-radius:4px 4px 10px 10px;background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 16px rgba(196,101,132,.10);transform:rotate(var(--rot,0deg));cursor:pointer;}
+  .note-card:hover{box-shadow:0 10px 22px rgba(196,101,132,.18);}
+  .note-card::before{content:'';position:absolute;top:-10px;left:50%;width:70px;height:22px;background:repeating-linear-gradient(45deg, var(--pink) 0 6px, var(--pink-soft) 6px 12px);opacity:.9;transform:translateX(-50%) rotate(-3deg);box-shadow:0 2px 4px rgba(0,0,0,.12);border-radius:2px;}
+  .note-card h4{font-family:'Fraunces',serif;font-size:16.5px;margin:4px 0 10px;padding-right:14px;}
+  .read-more{display:block;font-size:11.5px;font-weight:600;color:var(--rose);}
+  .note-card .del-btn{position:absolute;top:4px;right:4px;}
+  .note-card .edit-btn{position:absolute;top:4px;right:32px;}
+
+  /* MODAL */
+  .note-modal{display:none;position:fixed;inset:0;background:rgba(58,42,49,.35);z-index:50;align-items:center;justify-content:center;padding:24px;}
+  .note-modal.open{display:flex;}
+  .note-modal-inner{position:relative;background:var(--paper);max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:34px 30px 30px;border-radius:16px;box-shadow:0 20px 60px rgba(58,42,49,.25);}
+  .note-modal-inner h3{font-family:'Fraunces',serif;font-size:22px;margin:0 0 14px;padding-right:20px;}
+  #modal-isi{font-size:14px;line-height:1.7;color:var(--ink);}
+  #modal-isi table{border-collapse:collapse;margin:8px 0;}
+  #modal-isi td{border:2px solid var(--rose);padding:6px 10px;}
+  #modal-isi img{max-width:100%;border-radius:8px;margin:6px 0;}
+  .modal-close{position:absolute;top:10px;right:10px;font-size:20px;}
+
+  /* TUGAS */
+  .task-item{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border-radius:12px;border:1px solid var(--line);margin-bottom:8px;background:var(--blush);}
+  .task-item.done{opacity:.55;}
+  .task-item.overdue{border-color:#e0899a;background:#fff0f3;}
+  .checkbox{width:22px;height:22px;flex-shrink:0;border-radius:6px;border:2px solid var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;background:#fff;}
+  .checkbox svg{width:14px;height:14px;pointer-events:none;}
+  .checkbox svg path{fill:none;stroke:var(--rose);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .25s ease;}
+  .task-item.done .checkbox{background:var(--rose);}
+  .task-item.done .checkbox svg path{stroke:#fff;stroke-dashoffset:0;}
+  .task-text{flex:1;min-width:0;}
+  .task-text .ttl{font-size:14.5px;font-weight:600;}
+  .task-item.done .ttl{text-decoration:line-through;text-decoration-color:var(--rose);}
+  .task-text .dl{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--rose);margin-top:3px;}
+  .task-item.overdue .dl{color:#c23a54;font-weight:700;}
+
+  .empty{color:var(--ink-soft);font-size:13.5px;padding:20px 4px;}
+
+  /* DASHBOARD */
+  .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:24px;}
+  .dash-card{background:var(--blush);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;}
+  .dash-char{flex-shrink:0;}
+  .dash-card .num{font-family:'Fraunces',serif;font-size:28px;color:var(--rose);line-height:1;}
+  .dash-card .lbl{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .dash-section{margin-bottom:26px;}
+  .dash-section h3{font-family:'Fraunces',serif;font-size:16px;margin:0 0 10px;color:var(--ink);}
+
+  @media (max-width:640px){
+    .sidebar{width:92px;padding:16px 0 16px 8px;}
+    .profile-box{padding:10px 8px;border-radius:12px 0 0 12px;}
+    .profile-meta{display:none;}
+    .tab{padding:12px 8px;justify-content:center;font-size:11.5px;flex-direction:column;gap:4px;}
+    .tab span.tab-label{font-size:9.5px;}
+    .main{margin:16px 16px 16px 0;padding:22px 16px;}
+    .reminder-btn{flex-direction:column;gap:2px;padding:9px 4px;}
+    .reminder-note{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-tape"></div>
+    <h1>Agenda Kuliah</h1>
+    <p class="login-sub">Masuk dulu ya, biar datanya aman tersimpan 🎀</p>
+    <div id="field-nama" class="hidden">
+      <input id="login-nama" placeholder="Nama kamu" autocomplete="off">
+    </div>
+    <input id="login-hp" placeholder="No. HP" autocomplete="off" inputmode="numeric">
+    <input id="login-password" type="password" placeholder="Password" autocomplete="off">
+    <button id="login-btn" type="button">Masuk</button>
+    <div class="login-err" id="login-err"></div>
+    <p style="font-size:12px;color:var(--ink-soft);margin-top:14px;">
+      <span id="auth-switch-text">Belum punya akun?</span>
+      <a href="#" id="auth-switch-link" style="color:var(--rose);font-weight:700;text-decoration:none;">Daftar dulu</a>
+    </p>
+  </div>
+</div>
+
+<div class="app hidden" id="app-root">
+  <div class="sidebar">
+    <div class="profile-box">
+      <div class="avatar" id="avatar-initial">?</div>
+      <div class="profile-meta">
+        <div class="profile-name" id="profile-name">-</div>
+        <div class="profile-hp" id="profile-hp">-</div>
+        <button class="logout-btn" id="logout-btn" type="button">Ganti akun</button>
+      </div>
+    </div>
+    <div class="tab active" data-tab="dashboard">🏠 <span class="tab-label">Dashboard</span></div>
+    <div class="tab" data-tab="jadwal">📅 <span class="tab-label">Jadwal</span></div>
+    <div class="tab" data-tab="catatan">📝 <span class="tab-label">Catatan</span></div>
+    <div class="tab" data-tab="galeri">🖊️ <span class="tab-label">Drawing</span></div>
+    <div class="tab" data-tab="tugas">✅ <span class="tab-label">Tugas</span></div>
+    <div class="reminder-btn" id="reminder-btn">🔔 <span class="tab-label">Reminder</span></div>
+    <div class="reminder-note" id="reminder-note">Nyala saat halaman terbuka</div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel" id="panel-dashboard">
+      <div class="section-title">Dashboard</div>
+      <div class="subtext">Ringkasan agenda kuliah kamu.</div>
+      <div class="dash-grid">
+        <div class="dash-card">
+          <svg class="dash-char" width="52" height="52" viewBox="0 0 60 60">
+            <path d="M14 17 L30 9 L46 17 L30 25 Z" style="fill:var(--ink)"/>
+            <circle cx="30" cy="25" r="2" style="fill:var(--rose)"/>
+            <line x1="30" y1="25" x2="30" y2="31" stroke="var(--ink)" stroke-width="1.4"/>
+            <circle cx="30" cy="36" r="19" style="fill:var(--pink)" stroke="var(--rose)" stroke-width="1.4"/>
+            <circle cx="24" cy="36" r="2" fill="var(--ink)"/>
+            <circle cx="36" cy="36" r="2" fill="var(--ink)"/>
+            <ellipse cx="20" cy="42" rx="3" ry="2" fill="#fff" opacity=".55"/>
+            <ellipse cx="40" cy="42" rx="3" ry="2" fill="#fff" opacity=".55"/>
+            <path d="M25 44 Q30 48 35 44" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div><div class="num" id="dash-kelas-hari-ini">0</div><div class="lbl">Kelas hari ini</div></div>
+        </div>
+        <div class="dash-card">
+          <svg class="dash-char" width="52" height="52" viewBox="0 0 60 60">
+            <rect x="12" y="16" width="24" height="32" rx="5" style="fill:#fff" stroke="var(--rose)" stroke-width="1.6"/>
+            <rect x="18" y="12" width="12" height="7" rx="2" style="fill:var(--rose)"/>
+            <path d="M17 27 l4 4 l7 -8" stroke="var(--rose)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="17" y1="38" x2="31" y2="38" stroke="var(--pink)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="35" y1="20" x2="47" y2="16" stroke="var(--ink-soft)" stroke-width="2" stroke-linecap="round" transform="rotate(30 41 18)"/>
+            <circle cx="24" cy="52" r="7" style="fill:var(--pink)" stroke="var(--rose)" stroke-width="1.2"/>
+            <circle cx="21.5" cy="51" r="1" fill="var(--ink)"/>
+            <circle cx="26.5" cy="51" r="1" fill="var(--ink)"/>
+            <path d="M22 54 Q24 56 27 54" stroke="var(--ink)" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div><div class="num" id="dash-tugas-belum">0</div><div class="lbl">Tugas belum selesai</div></div>
+        </div>
+        <div class="dash-card">
+          <svg class="dash-char" width="52" height="52" viewBox="0 0 60 60">
+            <path d="M23 14 Q30 5 37 14 L37 21 Q30 26 23 21 Z" style="fill:var(--rose)"/>
+            <circle cx="30" cy="24" r="2.2" style="fill:var(--rose)"/>
+            <path d="M15 13 Q12 17 14 21" stroke="var(--rose)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+            <path d="M45 13 Q48 17 46 21" stroke="var(--rose)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+            <circle cx="30" cy="38" r="19" style="fill:#fbdada" stroke="var(--rose)" stroke-width="1.4"/>
+            <line x1="21" y1="32" x2="26" y2="34" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="39" y1="32" x2="34" y2="34" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="25" cy="38" r="1.8" fill="var(--ink)"/>
+            <circle cx="35" cy="38" r="1.8" fill="var(--ink)"/>
+            <path d="M25 45 Q30 42 35 45" stroke="var(--ink)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <path d="M43 34 q2.5 4 0 6.5 q-2.5 -2.5 0 -6.5 Z" fill="#8fcbea"/>
+          </svg>
+          <div><div class="num" id="dash-tugas-overdue">0</div><div class="lbl">Tugas lewat deadline</div></div>
+        </div>
+        <div class="dash-card">
+          <svg class="dash-char" width="52" height="52" viewBox="0 0 60 60">
+            <path d="M10 44 Q20 37 30 44 Q40 37 50 44 L50 50 Q40 45 30 50 Q20 45 10 50 Z" style="fill:#fff" stroke="var(--rose)" stroke-width="1.5"/>
+            <line x1="30" y1="44" x2="30" y2="50" stroke="var(--pink)" stroke-width="1.2"/>
+            <circle cx="30" cy="27" r="17" style="fill:var(--pink)" stroke="var(--rose)" stroke-width="1.4"/>
+            <circle cx="25" cy="27" r="1.8" fill="var(--ink)"/>
+            <circle cx="35" cy="27" r="1.8" fill="var(--ink)"/>
+            <ellipse cx="21" cy="32" rx="2.6" ry="1.8" fill="#fff" opacity=".55"/>
+            <ellipse cx="39" cy="32" rx="2.6" ry="1.8" fill="#fff" opacity=".55"/>
+            <path d="M25 34 Q30 37 35 34" stroke="var(--ink)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div><div class="num" id="dash-catatan-total">0</div><div class="lbl">Total catatan</div></div>
+        </div>
+      </div>
+      <div class="dash-section">
+        <h3>📅 Kelas hari ini</h3>
+        <div id="dash-kelas-list"></div>
+      </div>
+      <div class="dash-section">
+        <h3>✅ Tugas mendekati deadline</h3>
+        <div id="dash-tugas-list"></div>
+      </div>
+    </div>
+
+    <!-- JADWAL -->
+    <div class="panel hidden" id="panel-jadwal">
+      <div class="section-title">Jadwal Kuliah</div>
+      <div class="subtext">Semua kelas kamu minggu ini, tersusun per hari.</div>
+      <div class="addbar" id="addbar-jadwal">
+        <select id="j-hari">
+          <option>Senin</option><option>Selasa</option><option>Rabu</option>
+          <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+        </select>
+        <input id="j-matkul" placeholder="Mata kuliah" style="flex:1;min-width:140px;">
+        <input id="j-mulai" type="time" style="width:100px;">
+        <input id="j-selesai" type="time" style="width:100px;">
+        <input id="j-ruang" placeholder="Ruangan" style="width:110px;">
+        <button id="btn-add-jadwal" type="button">+ Tambah</button>
+      </div>
+      <div id="jadwal-list"></div>
+    </div>
+
+    <!-- CATATAN -->
+    <div class="panel hidden" id="panel-catatan">
+      <div class="section-title">Catatan Kuliah</div>
+      <div class="subtext">Ketik, tabel, tempel gambar, atau gambar pakai pen — bebas.</div>
+      <div class="addbar addbar-notes" id="addbar-catatan">
+        <input id="c-judul" placeholder="Judul catatan">
+        <input id="c-matkul" placeholder="Mata kuliah (opsional, buat label warna)">
+
+        <div class="rte-toolbar">
+          <button class="rte-btn" data-cmd="bold" type="button"><b>B</b></button>
+          <button class="rte-btn" data-cmd="italic" type="button"><i>I</i></button>
+          <button class="rte-btn" data-cmd="underline" type="button"><u>U</u></button>
+          <div class="rte-sep"></div>
+          <button class="rte-swatch" style="background:#C46584" data-color="#C46584" type="button"></button>
+          <button class="rte-swatch" style="background:#4E7FA8" data-color="#4E7FA8" type="button"></button>
+          <button class="rte-swatch" style="background:#5B8A72" data-color="#5B8A72" type="button"></button>
+          <button class="rte-swatch" style="background:#3A2A31" data-color="#3A2A31" type="button"></button>
+          <input class="rte-color-native" id="rte-color-picker" type="color" value="#C46584" title="Pilih warna lain">
+          <div class="rte-sep"></div>
+          <button class="rte-btn" id="btn-insert-table" type="button">🔳 Tabel</button>
+          <span class="tbl-popover hidden" id="tbl-popover">
+            <input type="number" id="tbl-rows" class="tbl-input" min="1" max="30" value="2"> ×
+            <input type="number" id="tbl-cols" class="tbl-input" min="1" max="30" value="2">
+            <button class="rte-btn" id="tbl-confirm-btn" type="button">Sisipkan</button>
+          </span>
+          <button class="rte-btn" id="btn-insert-image" type="button">🖼️ Gambar</button>
+          <input type="file" id="c-img-input" accept="image/*" class="hidden">
+        </div>
+        <div class="rte-editor" id="c-isi-editor" contenteditable="true" data-placeholder="Tulis catatan kuliahnya di sini... bisa ketik, tabel, atau gambar 😊"></div>
+        <div class="rte-hint">Pilih warna dulu lalu blok teks buat mewarnai. Mau gambar tangan pakai pen? Ada di menu 🖊️ Drawing.</div>
+
+        <button id="btn-add-catatan" type="button" style="margin-top:6px;">+ Simpan Catatan</button>
+      </div>
+      <div class="search-bar">🔍 <input id="c-search" placeholder="Cari catatan (judul, isi, atau matkul)..."></div>
+      <div class="notes-grid" id="catatan-list"></div>
+    </div>
+
+    <!-- DRAWING -->
+    <div class="panel hidden" id="panel-galeri">
+      <div class="section-title">Drawing</div>
+      <div class="subtext">Gambar bebas pakai pen — buat coretan, sketsa, atau diagram kecil.</div>
+      <div class="addbar" id="addbar-galeri">
+        <input id="g-judul" placeholder="Judul gambar (opsional)" style="flex:1;min-width:160px;">
+        <button class="rte-btn" id="btn-gallery-draw" type="button">🖊️ Mulai Gambar</button>
+      </div>
+      <div class="notes-grid" id="galeri-list"></div>
+    </div>
+
+    <!-- TUGAS -->
+    <div class="panel hidden" id="panel-tugas">
+      <div class="section-title">Tugas</div>
+      <div class="subtext">Centang kalau udah selesai. Reminder bakal bunyi kalau deadline mepet.</div>
+      <div class="addbar" id="addbar-tugas">
+        <input id="t-judul" placeholder="Nama tugas" style="flex:1;min-width:160px;">
+        <input id="t-matkul" placeholder="Mata kuliah (opsional)" style="width:150px;">
+        <input id="t-deadline" type="date" style="width:140px;">
+        <input id="t-waktu" type="time" style="width:100px;">
+        <button id="btn-add-tugas" type="button">+ Tambah</button>
+      </div>
+      <div id="tugas-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="note-modal" id="note-modal">
+  <div class="note-modal-inner">
+    <button class="del-btn modal-close" id="modal-close-btn" type="button">✕</button>
+    <h3 id="modal-judul"></h3>
+    <div id="modal-isi"></div>
+  </div>
+</div>
+
+<div class="draw-overlay" id="draw-overlay">
+  <div class="draw-box">
+    <h3>🖊️ Gambar Tangan</h3>
+    <div class="draw-toolbar">
+      <input type="color" id="draw-color" value="#3A2A31">
+      <input type="range" id="draw-size" min="1" max="20" value="3">
+      <span style="font-size:12px;color:var(--ink-soft);">ukuran pen</span>
+    </div>
+    <canvas id="draw-canvas" width="460" height="280"></canvas>
+    <div class="draw-actions">
+      <button class="btn-clear" id="draw-clear" type="button">Hapus</button>
+      <button class="btn-cancel" id="draw-cancel" type="button">Batal</button>
+      <button class="btn-insert" id="draw-insert" type="button">Selesai & Sisipkan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAY_ORDER = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+let jadwal = [], catatan = [], tugas = [];
+let editingJadwalId = null, editingCatatanId = null, editingTugasId = null;
+let catatanSearch = '';
+let reminderEnabled = false;
+const notifiedKeys = new Set();
+
+/* ===== WARNA LABEL PER MATKUL ===== */
+const TAG_COLORS = ['#C46584','#B08968','#8E7CC3','#5B8A72','#4E7FA8','#B85C5C'];
+function colorForMatkul(nama){
+  if(!nama) return null;
+  let hash = 0;
+  for(let i=0;i<nama.length;i++){ hash = (hash*31 + nama.charCodeAt(i)) >>> 0; }
+  return TAG_COLORS[hash % TAG_COLORS.length];
+}
+function tagHtml(matkul){
+  if(!matkul) return '';
+  return `<span class="tag" style="background:${colorForMatkul(matkul)}">${escapeHtml(matkul)}</span>`;
+}
+
+/* ===== API CLIENT (Laravel backend) ===== */
+const API_BASE = 'http://127.0.0.1:8000/api'; 
+let authToken = localStorage.getItem('agenda-token') || null;
+
+async function apiFetch(path, opts={}){
+  const headers = Object.assign({'Content-Type':'application/json','Accept':'application/json'}, opts.headers||{});
+  if(authToken) headers['Authorization'] = 'Bearer '+authToken;
+  let res;
+  try{
+    res = await fetch(API_BASE+path, Object.assign({}, opts, {headers}));
+  }catch(e){
+    throw new Error('Nggak bisa konek ke server. Cek koneksi atau alamat API_BASE di kode.');
+  }
+  if(res.status===401){ forceLogout(); throw new Error('Sesi habis, silakan login lagi.'); }
+  if(!res.ok){
+    const err = await res.json().catch(()=>({message:'Terjadi kesalahan.'}));
+    const firstError = err.errors ? Object.values(err.errors)[0][0] : null;
+    throw new Error(firstError || err.message || 'Request gagal.');
+  }
+  return res.status===204 ? null : res.json();
+}
+const apiList   = (r)      => apiFetch('/'+r);
+const apiCreate = (r, body) => apiFetch('/'+r, {method:'POST', body:JSON.stringify(body)});
+const apiUpdate = (r, id, body) => apiFetch('/'+r+'/'+id, {method:'PUT', body:JSON.stringify(body)});
+const apiDelete = (r, id)  => apiFetch('/'+r+'/'+id, {method:'DELETE'});
+
+/* ===== LOGIN / REGISTER ===== */
+let authMode = 'login'; // 'login' atau 'register'
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('field-nama').classList.toggle('hidden', mode!=='register');
+  document.getElementById('login-btn').textContent = mode==='register' ? 'Daftar' : 'Masuk';
+  document.getElementById('auth-switch-text').textContent = mode==='register' ? 'Udah punya akun?' : 'Belum punya akun?';
+  document.getElementById('auth-switch-link').textContent = mode==='register' ? 'Masuk' : 'Daftar dulu';
+}
+async function checkLogin(){
+  if(!authToken){ document.getElementById('login-screen').classList.remove('hidden'); return; }
+  try{
+    const me = await apiFetch('/me');
+    enterApp(me);
+  }catch(e){
+    forceLogout();
+  }
+}
+async function doLogin(){
+  const nama = document.getElementById('login-nama').value.trim();
+  const hp = document.getElementById('login-hp').value.trim();
+  const password = document.getElementById('login-password').value;
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  if(!hp || !password || (authMode==='register' && !nama)){
+    err.textContent = 'Semua kolom wajib diisi ya.'; return;
+  }
+  try{
+    const path = authMode==='register' ? '/register' : '/login';
+    const body = authMode==='register' ? {nama, hp, password} : {hp, password};
+    const data = await apiFetch(path, {method:'POST', body:JSON.stringify(body)});
+    authToken = data.token;
+    localStorage.setItem('agenda-token', authToken);
+    enterApp(data.user);
+  }catch(e){
+    err.textContent = e.message;
+  }
+}
+function enterApp(profile){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-root').classList.remove('hidden');
+  document.getElementById('profile-name').textContent = profile.nama;
+  document.getElementById('profile-hp').textContent = profile.hp;
+  document.getElementById('avatar-initial').textContent = profile.nama.trim().charAt(0).toUpperCase() || '?';
+  loadData();
+}
+function forceLogout(){
+  authToken = null;
+  localStorage.removeItem('agenda-token');
+  document.getElementById('app-root').classList.add('hidden');
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+async function doLogout(){
+  try{ await apiFetch('/logout', {method:'POST'}); }catch(e){}
+  forceLogout();
+}
+
+/* ===== TAB SWITCH ===== */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.remove('hidden');
+    if(tab.dataset.tab==='dashboard') renderDashboard();
+  });
+});
+
+/* ===== LOAD DATA (dari API) ===== */
+function showApiError(e){ console.error(e); alert('⚠️ '+e.message); }
+async function loadData(){
+  try{ jadwal = await apiList('jadwal'); }catch(e){ jadwal = []; showApiError(e); }
+  try{ catatan = await apiList('catatan'); }catch(e){ catatan = []; }
+  try{ tugas = await apiList('tugas'); }catch(e){ tugas = []; }
+  try{ galeri = await apiList('galeri'); }catch(e){ galeri = []; }
+  renderAll();
+}
+function renderAll(){ renderJadwal(); renderCatatan(); renderTugas(); renderDashboard(); renderGaleri(); }
+
+/* ===== JADWAL ===== */
+function addJadwal(){
+  const hari = document.getElementById('j-hari').value;
+  const matkul = document.getElementById('j-matkul').value.trim();
+  const mulai = document.getElementById('j-mulai').value;
+  const selesai = document.getElementById('j-selesai').value;
+  const ruang = document.getElementById('j-ruang').value.trim();
+  if(!matkul || !mulai) return;
+  const payload = {hari, matkul, mulai, selesai, ruang};
+  (async ()=>{
+    try{
+      if(editingJadwalId){
+        const updated = await apiUpdate('jadwal', editingJadwalId, payload);
+        const idx = jadwal.findIndex(x=>x.id===editingJadwalId);
+        if(idx>-1) jadwal[idx] = updated;
+        cancelEditJadwal();
+      }else{
+        const created = await apiCreate('jadwal', payload);
+        jadwal.push(created);
+      }
+      ['j-matkul','j-mulai','j-selesai','j-ruang'].forEach(id=>document.getElementById(id).value='');
+      renderJadwal(); renderDashboard();
+    }catch(e){ showApiError(e); }
+  })();
+}
+function editJadwal(id){
+  const item = jadwal.find(x=>x.id===id); if(!item) return;
+  editingJadwalId = id;
+  document.getElementById('j-hari').value = item.hari;
+  document.getElementById('j-matkul').value = item.matkul;
+  document.getElementById('j-mulai').value = item.mulai;
+  document.getElementById('j-selesai').value = item.selesai || '';
+  document.getElementById('j-ruang').value = item.ruang || '';
+  document.getElementById('btn-add-jadwal').textContent = '💾 Simpan Perubahan';
+  document.getElementById('addbar-jadwal').classList.add('editing');
+  document.getElementById('addbar-jadwal').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelEditJadwal(){
+  editingJadwalId = null;
+  document.getElementById('btn-add-jadwal').textContent = '+ Tambah';
+  document.getElementById('addbar-jadwal').classList.remove('editing');
+}
+function delJadwal(id){
+  apiDelete('jadwal', id).then(()=>{
+    jadwal = jadwal.filter(x=>x.id!==id);
+    if(editingJadwalId===id) cancelEditJadwal();
+    renderJadwal(); renderDashboard();
+  }).catch(showApiError);
+}
+function renderJadwal(){
+  const el = document.getElementById('jadwal-list');
+  if(jadwal.length===0){ el.innerHTML = '<div class="empty">Belum ada jadwal. Tambahin kelas pertama kamu di atas ✨</div>'; return; }
+  let html='';
+  DAY_ORDER.forEach(day=>{
+    const items = jadwal.filter(j=>j.hari===day).sort((a,b)=>a.mulai.localeCompare(b.mulai));
+    if(items.length===0) return;
+    html += `<div class="day-group"><div class="day-label">${day}</div>`;
+    items.forEach(j=>{
+      html += `<div class="class-item" data-id="${j.id}">
+        <div class="class-time">${j.mulai}${j.selesai? '–'+j.selesai:''}</div>
+        <div class="class-info">${tagHtml(j.matkul)}<br><b>${escapeHtml(j.matkul)}</b><div>${j.ruang? 'Ruang '+escapeHtml(j.ruang):''}</div></div>
+        <button class="edit-btn" data-action="edit-jadwal" data-id="${j.id}">✏️</button>
+        <button class="del-btn" data-action="del-jadwal" data-id="${j.id}">✕</button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  el.innerHTML = html || '<div class="empty">Belum ada jadwal.</div>';
+}
+
+/* ===== RICH TEXT EDITOR (CATATAN) ===== */
+let currentColor = '#C46584';
+const rteEditor = () => document.getElementById('c-isi-editor');
+function insertAtEditor(html){
+  const editor = rteEditor();
+  editor.focus();
+  try{
+    const sel = window.getSelection();
+    if(sel && sel.rangeCount && editor.contains(sel.anchorNode)){
+      document.execCommand('insertHTML', false, html);
+      return;
+    }
+  }catch(e){}
+  editor.innerHTML += html;
+}
+function downscaleImage(dataUrl, maxW, cb){
+  const img = new Image();
+  img.onload = ()=>{
+    const scale = Math.min(1, maxW/img.width);
+    const c = document.createElement('canvas');
+    c.width = img.width*scale; c.height = img.height*scale;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    cb(c.toDataURL('image/jpeg', 0.82));
+  };
+  img.src = dataUrl;
+}
+
+/* ===== DRAWING PAD ===== */
+let drawCtx, drawing=false;
+function setupDrawCanvas(){
+  const canvas = document.getElementById('draw-canvas');
+  drawCtx = canvas.getContext('2d');
+  drawCtx.fillStyle = '#fff'; drawCtx.fillRect(0,0,canvas.width,canvas.height);
+  drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+  const pos = e=>{
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
+    return {x: cx*(canvas.width/r.width), y: cy*(canvas.height/r.height)};
+  };
+  const start = e=>{ drawing=true; const p=pos(e); drawCtx.beginPath(); drawCtx.moveTo(p.x,p.y); e.preventDefault(); };
+  const move = e=>{
+    if(!drawing) return;
+    const p=pos(e);
+    drawCtx.strokeStyle = document.getElementById('draw-color').value;
+    drawCtx.lineWidth = document.getElementById('draw-size').value;
+    drawCtx.lineTo(p.x,p.y); drawCtx.stroke();
+    e.preventDefault();
+  };
+  const end = ()=>{ drawing=false; };
+  canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+}
+function openDrawPad(){ document.getElementById('draw-overlay').classList.add('open'); }
+function closeDrawPad(){ document.getElementById('draw-overlay').classList.remove('open'); }
+function clearDrawPad(){
+  const canvas = document.getElementById('draw-canvas');
+  drawCtx.fillStyle = '#fff'; drawCtx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function addCatatan(){
+  const judul = document.getElementById('c-judul').value.trim();
+  const matkul = document.getElementById('c-matkul').value.trim();
+  const html = rteEditor().innerHTML.trim();
+  if(!judul) return;
+  const payload = {judul, matkul, html, rot:(Math.random()*3-1.5).toFixed(1)};
+  (async ()=>{
+    try{
+      if(editingCatatanId){
+        const updated = await apiUpdate('catatan', editingCatatanId, payload);
+        const idx = catatan.findIndex(x=>x.id===editingCatatanId);
+        if(idx>-1) catatan[idx] = updated;
+        cancelEditCatatan();
+      }else{
+        const created = await apiCreate('catatan', payload);
+        catatan.push(created);
+      }
+      document.getElementById('c-judul').value='';
+      document.getElementById('c-matkul').value='';
+      rteEditor().innerHTML='';
+      renderCatatan(); renderDashboard();
+    }catch(e){ showApiError(e); }
+  })();
+}
+function editCatatan(id){
+  const item = catatan.find(x=>x.id===id); if(!item) return;
+  editingCatatanId = id;
+  document.getElementById('c-judul').value = item.judul;
+  document.getElementById('c-matkul').value = item.matkul || '';
+  rteEditor().innerHTML = item.html || '';
+  document.getElementById('btn-add-catatan').textContent = '💾 Simpan Perubahan';
+  document.getElementById('addbar-catatan').classList.add('editing');
+  document.getElementById('addbar-catatan').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelEditCatatan(){
+  editingCatatanId = null;
+  document.getElementById('btn-add-catatan').textContent = '+ Simpan Catatan';
+  document.getElementById('addbar-catatan').classList.remove('editing');
+}
+function delCatatan(id){
+  apiDelete('catatan', id).then(()=>{
+    catatan = catatan.filter(x=>x.id!==id);
+    if(editingCatatanId===id) cancelEditCatatan();
+    renderCatatan(); renderDashboard(); closeNoteModal();
+  }).catch(showApiError);
+}
+function stripTags(html){ const d=document.createElement('div'); d.innerHTML=html||''; return d.textContent||''; }
+function renderCatatan(){
+  const el = document.getElementById('catatan-list');
+  if(catatan.length===0){ el.innerHTML = '<div class="empty">Belum ada catatan. Yuk tulis yang pertama 📝</div>'; return; }
+  const term = catatanSearch.trim().toLowerCase();
+  const filtered = term ? catatan.filter(c =>
+    (c.judul||'').toLowerCase().includes(term) ||
+    stripTags(c.html).toLowerCase().includes(term) ||
+    (c.matkul||'').toLowerCase().includes(term)
+  ) : catatan;
+  if(filtered.length===0){ el.innerHTML = `<div class="empty">Nggak ketemu catatan buat "${escapeHtml(catatanSearch)}" 🔍</div>`; return; }
+  el.innerHTML = filtered.map(c=>`
+    <div class="note-card" style="--rot:${c.rot}deg" data-action="open-note" data-id="${c.id}">
+      <button class="edit-btn" data-action="edit-catatan" data-id="${c.id}">✏️</button>
+      <button class="del-btn" data-action="del-catatan" data-id="${c.id}">✕</button>
+      ${tagHtml(c.matkul)}
+      <h4>${escapeHtml(c.judul)}</h4>
+      <span class="read-more">👆 Klik untuk lihat isi</span>
+    </div>
+  `).join('');
+}
+function openNoteModal(id){
+  const c = catatan.find(x=>x.id===id); if(!c) return;
+  document.getElementById('modal-judul').textContent = c.judul;
+  document.getElementById('modal-isi').innerHTML = c.html || '<span style="color:#bda2ab">(kosong)</span>';
+  document.getElementById('note-modal').classList.add('open');
+}
+function closeNoteModal(){ document.getElementById('note-modal').classList.remove('open'); }
+
+/* ===== TUGAS ===== */
+function addTugas(){
+  const judul = document.getElementById('t-judul').value.trim();
+  const matkul = document.getElementById('t-matkul').value.trim();
+  const deadline = document.getElementById('t-deadline').value;
+  const waktu = document.getElementById('t-waktu').value;
+  if(!judul) return;
+  const payload = {judul, matkul, deadline: deadline||null, waktu: waktu||null};
+  (async ()=>{
+    try{
+      if(editingTugasId){
+        const updated = await apiUpdate('tugas', editingTugasId, payload);
+        const idx = tugas.findIndex(x=>x.id===editingTugasId);
+        if(idx>-1) tugas[idx] = updated;
+        cancelEditTugas();
+      }else{
+        const created = await apiCreate('tugas', Object.assign({done:false}, payload));
+        tugas.push(created);
+      }
+      ['t-judul','t-matkul','t-deadline','t-waktu'].forEach(id=>document.getElementById(id).value='');
+      renderTugas(); renderDashboard();
+    }catch(e){ showApiError(e); }
+  })();
+}
+function editTugas(id){
+  const item = tugas.find(x=>x.id===id); if(!item) return;
+  editingTugasId = id;
+  document.getElementById('t-judul').value = item.judul;
+  document.getElementById('t-matkul').value = item.matkul || '';
+  document.getElementById('t-deadline').value = item.deadline || '';
+  document.getElementById('t-waktu').value = item.waktu || '';
+  document.getElementById('btn-add-tugas').textContent = '💾 Simpan Perubahan';
+  document.getElementById('addbar-tugas').classList.add('editing');
+  document.getElementById('addbar-tugas').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelEditTugas(){
+  editingTugasId = null;
+  document.getElementById('btn-add-tugas').textContent = '+ Tambah';
+  document.getElementById('addbar-tugas').classList.remove('editing');
+}
+function toggleTugas(id){
+  const t = tugas.find(x=>x.id===id); if(!t) return;
+  const newDone = !t.done;
+  apiUpdate('tugas', id, {done:newDone}).then(updated=>{
+    const idx = tugas.findIndex(x=>x.id===id);
+    if(idx>-1) tugas[idx] = updated;
+    renderTugas(); renderDashboard();
+  }).catch(showApiError);
+}
+function delTugas(id){
+  apiDelete('tugas', id).then(()=>{
+    tugas = tugas.filter(x=>x.id!==id);
+    if(editingTugasId===id) cancelEditTugas();
+    renderTugas(); renderDashboard();
+  }).catch(showApiError);
+}
+function deadlineDateTime(t){
+  if(!t.deadline) return null;
+  return new Date(t.deadline+'T'+(t.waktu||'23:59')+':00');
+}
+function renderTugas(){
+  const el = document.getElementById('tugas-list');
+  if(tugas.length===0){ el.innerHTML = '<div class="empty">Belum ada tugas. Semoga selalu begini ya 🙏</div>'; return; }
+  const now = new Date();
+  const sorted = [...tugas].sort((a,b)=>{
+    if(a.done !== b.done) return a.done - b.done;
+    const da = deadlineDateTime(a), db = deadlineDateTime(b);
+    if(!da && !db) return 0; if(!da) return 1; if(!db) return -1;
+    return da - db;
+  });
+  el.innerHTML = sorted.map(t=>{
+    const dt = deadlineDateTime(t);
+    const overdue = !t.done && dt && dt < now;
+    return `<div class="task-item ${t.done?'done':''} ${overdue?'overdue':''}" data-id="${t.id}">
+      <div class="checkbox" data-action="toggle-tugas" data-id="${t.id}">
+        <svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg>
+      </div>
+      <div class="task-text">
+        ${tagHtml(t.matkul)}
+        <div class="ttl">${escapeHtml(t.judul)}</div>
+        ${t.deadline? `<div class="dl">${overdue? '⚠️ Lewat deadline: ':'Deadline: '}${formatDate(t.deadline)}${t.waktu? ' · '+t.waktu:''}</div>`:''}
+      </div>
+      <button class="edit-btn" data-action="edit-tugas" data-id="${t.id}">✏️</button>
+      <button class="del-btn" data-action="del-tugas" data-id="${t.id}">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ===== DASHBOARD ===== */
+function renderDashboard(){
+  const now = new Date();
+  const todayName = DAY_ORDER[(now.getDay()+6)%7];
+  const kelasHariIni = jadwal.filter(j=>j.hari===todayName).sort((a,b)=>a.mulai.localeCompare(b.mulai));
+  const tugasBelum = tugas.filter(t=>!t.done);
+  const tugasOverdue = tugasBelum.filter(t=>{ const dt=deadlineDateTime(t); return dt && dt < now; });
+
+  document.getElementById('dash-kelas-hari-ini').textContent = kelasHariIni.length;
+  document.getElementById('dash-tugas-belum').textContent = tugasBelum.length;
+  document.getElementById('dash-tugas-overdue').textContent = tugasOverdue.length;
+  document.getElementById('dash-catatan-total').textContent = catatan.length;
+
+  const kelasEl = document.getElementById('dash-kelas-list');
+  kelasEl.innerHTML = kelasHariIni.length ? kelasHariIni.map(j=>`
+    <div class="class-item"><div class="class-time">${j.mulai}${j.selesai? '–'+j.selesai:''}</div>
+    <div class="class-info">${tagHtml(j.matkul)}<br><b>${escapeHtml(j.matkul)}</b><div>${j.ruang? 'Ruang '+escapeHtml(j.ruang):''}</div></div></div>
+  `).join('') : '<div class="empty">Nggak ada kelas hari ini 🎉</div>';
+
+  const tugasSorted = [...tugasBelum].sort((a,b)=>{
+    const da=deadlineDateTime(a), db=deadlineDateTime(b);
+    if(!da && !db) return 0; if(!da) return 1; if(!db) return -1;
+    return da-db;
+  }).slice(0,5);
+  const tugasEl = document.getElementById('dash-tugas-list');
+  tugasEl.innerHTML = tugasSorted.length ? tugasSorted.map(t=>{
+    const dt = deadlineDateTime(t); const overdue = dt && dt < now;
+    return `<div class="task-item ${overdue?'overdue':''}">
+      <div class="task-text">${tagHtml(t.matkul)}<div class="ttl">${escapeHtml(t.judul)}</div>
+      ${t.deadline? `<div class="dl">${overdue?'⚠️ Lewat: ':'Deadline: '}${formatDate(t.deadline)}${t.waktu?' · '+t.waktu:''}</div>`:''}</div>
+    </div>`;
+  }).join('') : '<div class="empty">Nggak ada tugas mendesak 🙌</div>';
+}
+
+/* ===== HELPERS ===== */
+function formatDate(str){
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ===== SUARA NOTIFIKASI ===== */
+let beepCtx = null;
+function unlockAudio(){
+  try{ beepCtx = beepCtx || new (window.AudioContext||window.webkitAudioContext)(); if(beepCtx.state==='suspended') beepCtx.resume(); }catch(e){}
+}
+function playBeep(){
+  try{
+    beepCtx = beepCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const osc = beepCtx.createOscillator(), gain = beepCtx.createGain();
+    osc.type='sine'; osc.frequency.value=880; gain.gain.value=0.16;
+    osc.connect(gain); gain.connect(beepCtx.destination);
+    osc.start();
+    osc.frequency.setValueAtTime(880, beepCtx.currentTime);
+    osc.frequency.setValueAtTime(660, beepCtx.currentTime+0.15);
+    setTimeout(()=>osc.stop(), 320);
+  }catch(e){ console.error('Gagal main suara', e); }
+}
+
+/* ===== REMINDER ===== */
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function notify(title, body){
+  playBeep();
+  if('Notification' in window && Notification.permission==='granted'){
+    try{ new Notification(title, {body}); }catch(e){}
+  }
+}
+function checkReminders(){
+  if(!reminderEnabled) return;
+  const now = new Date(); const today = todayStr();
+  tugas.forEach(t=>{
+    if(t.done || !t.deadline) return;
+    const dt = deadlineDateTime(t);
+    const diffMin = (dt-now)/60000;
+    if(diffMin<=60 && diffMin>0){
+      const key='tugas-soon-'+t.id+'-'+today;
+      if(!notifiedKeys.has(key)){ notifiedKeys.add(key); notify('⏰ Deadline mendekat: '+t.judul, (t.matkul?t.matkul+' — ':'')+'kurang dari 1 jam!'); }
+    }else if(diffMin<=0){
+      const key='tugas-overdue-'+t.id+'-'+today;
+      if(!notifiedKeys.has(key)){ notifiedKeys.add(key); notify('⚠️ Deadline lewat: '+t.judul, (t.matkul?t.matkul+' — ':'')+'sudah lewat deadline'); }
+    }
+  });
+  const dayName = DAY_ORDER[(now.getDay()+6)%7];
+  jadwal.forEach(j=>{
+    if(j.hari!==dayName) return;
+    const [h,m] = j.mulai.split(':').map(Number);
+    const start = new Date(now); start.setHours(h,m,0,0);
+    const diffMin = (start-now)/60000;
+    if(diffMin>=0 && diffMin<=15){
+      const key='jadwal-'+j.id+'-'+today;
+      if(!notifiedKeys.has(key)){ notifiedKeys.add(key); notify('📅 Kelas segera mulai: '+j.matkul, (j.ruang?'Ruang '+j.ruang+' — ':'')+'jam '+j.mulai); }
+    }
+  });
+}
+let reminderInterval = null;
+async function toggleReminder(){
+  const btn = document.getElementById('reminder-btn'), note = document.getElementById('reminder-note');
+  if(!reminderEnabled){
+    unlockAudio();
+    if('Notification' in window && Notification.permission!=='denied'){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    reminderEnabled = true;
+    btn.classList.add('on');
+    note.textContent = 'Aktif — bunyi & notif saat halaman terbuka';
+    checkReminders();
+    reminderInterval = setInterval(checkReminders, 60000);
+  }else{
+    reminderEnabled = false;
+    btn.classList.remove('on');
+    note.textContent = 'Nyala saat halaman terbuka';
+    if(reminderInterval) clearInterval(reminderInterval);
+  }
+}
+
+/* ===== EVENT WIRING ===== */
+document.getElementById('login-btn').addEventListener('click', doLogin);
+['login-nama','login-hp','login-password'].forEach(id=>document.getElementById(id).addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); }));
+document.getElementById('logout-btn').addEventListener('click', doLogout);
+document.getElementById('auth-switch-link').addEventListener('click', e=>{
+  e.preventDefault();
+  setAuthMode(authMode==='login' ? 'register' : 'login');
+});
+
+document.getElementById('btn-add-jadwal').addEventListener('click', addJadwal);
+document.getElementById('btn-add-catatan').addEventListener('click', addCatatan);
+document.getElementById('btn-add-tugas').addEventListener('click', addTugas);
+
+document.getElementById('jadwal-list').addEventListener('click', e=>{
+  const d=e.target.closest('[data-action="del-jadwal"]'); if(d){ delJadwal(Number(d.dataset.id)); return; }
+  const ed=e.target.closest('[data-action="edit-jadwal"]'); if(ed) editJadwal(Number(ed.dataset.id));
+});
+document.getElementById('catatan-list').addEventListener('click', e=>{
+  const d=e.target.closest('[data-action="del-catatan"]'); if(d){ delCatatan(Number(d.dataset.id)); return; }
+  const ed=e.target.closest('[data-action="edit-catatan"]'); if(ed){ editCatatan(Number(ed.dataset.id)); return; }
+  const card=e.target.closest('[data-action="open-note"]'); if(card) openNoteModal(Number(card.dataset.id));
+});
+document.getElementById('tugas-list').addEventListener('click', e=>{
+  const d=e.target.closest('[data-action="del-tugas"]'); if(d){ delTugas(Number(d.dataset.id)); return; }
+  const ed=e.target.closest('[data-action="edit-tugas"]'); if(ed){ editTugas(Number(ed.dataset.id)); return; }
+  const chk=e.target.closest('[data-action="toggle-tugas"]'); if(chk) toggleTugas(Number(chk.dataset.id));
+});
+document.getElementById('modal-close-btn').addEventListener('click', closeNoteModal);
+document.getElementById('note-modal').addEventListener('click', e=>{ if(e.target.id==='note-modal') closeNoteModal(); });
+document.getElementById('c-search').addEventListener('input', e=>{ catatanSearch = e.target.value; renderCatatan(); });
+document.getElementById('reminder-btn').addEventListener('click', toggleReminder);
+
+/* RTE toolbar events */
+document.querySelectorAll('.rte-btn[data-cmd]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ rteEditor().focus(); document.execCommand(btn.dataset.cmd); });
+});
+document.querySelectorAll('.rte-swatch').forEach(sw=>{
+  sw.addEventListener('click', ()=>{
+    currentColor = sw.dataset.color;
+    document.getElementById('rte-color-picker').value = currentColor;
+    rteEditor().focus(); document.execCommand('foreColor', false, currentColor);
+  });
+});
+document.getElementById('rte-color-picker').addEventListener('input', e=>{
+  currentColor = e.target.value;
+  rteEditor().focus(); document.execCommand('foreColor', false, currentColor);
+});
+document.getElementById('btn-insert-table').addEventListener('click', ()=>{
+  document.getElementById('tbl-popover').classList.toggle('hidden');
+});
+document.getElementById('tbl-confirm-btn').addEventListener('click', ()=>{
+  const rows = Math.max(1, Math.min(30, parseInt(document.getElementById('tbl-rows').value,10) || 2));
+  const cols = Math.max(1, Math.min(30, parseInt(document.getElementById('tbl-cols').value,10) || 2));
+  let html = `<table>`;
+  for(let r=0;r<rows;r++){
+    html += '<tr>';
+    for(let c=0;c<cols;c++){ html += `<td style="border-color:${currentColor}">&nbsp;</td>`; }
+    html += '</tr>';
+  }
+  html += '</table><br>';
+  insertAtEditor(html);
+  document.getElementById('tbl-popover').classList.add('hidden');
+});
+
+/* ===== GALERI ===== */
+let galeri = [];
+let drawTarget = 'galeri';
+function addGalleryItem(judul, image){
+  const payload = {judul: judul||'Tanpa judul', image, rot:(Math.random()*3-1.5).toFixed(1)};
+  apiCreate('galeri', payload).then(created=>{
+    galeri.push(created);
+    renderGaleri();
+  }).catch(showApiError);
+}
+function delGaleri(id){
+  apiDelete('galeri', id).then(()=>{
+    galeri = galeri.filter(x=>x.id!==id);
+    renderGaleri();
+    closeNoteModal();
+  }).catch(showApiError);
+}
+function renderGaleri(){
+  const el = document.getElementById('galeri-list');
+  if(galeri.length===0){ el.innerHTML = '<div class="empty">Belum ada gambar. Upload atau gambar pertama kamu di atas ✨</div>'; return; }
+  el.innerHTML = galeri.map(g=>`
+    <div class="note-card" style="--rot:${g.rot}deg" data-action="open-gallery" data-id="${g.id}">
+      <button class="del-btn" data-action="del-galeri" data-id="${g.id}">✕</button>
+      <img class="gallery-thumb" src="${g.image}">
+      <h4 style="font-size:14px;">${escapeHtml(g.judul)}</h4>
+    </div>
+  `).join('');
+}
+function openGalleryModal(id){
+  const g = galeri.find(x=>x.id===id); if(!g) return;
+  document.getElementById('modal-judul').textContent = g.judul;
+  document.getElementById('modal-isi').innerHTML = `<img src="${g.image}" style="max-width:100%;border-radius:10px;">`;
+  document.getElementById('note-modal').classList.add('open');
+}
+document.getElementById('galeri-list').addEventListener('click', e=>{
+  const d=e.target.closest('[data-action="del-galeri"]'); if(d){ delGaleri(Number(d.dataset.id)); return; }
+  const card=e.target.closest('[data-action="open-gallery"]'); if(card) openGalleryModal(Number(card.dataset.id));
+});
+document.getElementById('btn-gallery-draw').addEventListener('click', ()=>{ drawTarget='galeri'; openDrawPad(); });
+document.getElementById('btn-insert-image').addEventListener('click', ()=>document.getElementById('c-img-input').click());
+document.getElementById('c-img-input').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=> downscaleImage(reader.result, 700, small=>{
+    insertAtEditor(`<img src="${small}">`);
+  });
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+document.getElementById('draw-cancel').addEventListener('click', closeDrawPad);
+document.getElementById('draw-clear').addEventListener('click', clearDrawPad);
+document.getElementById('draw-insert').addEventListener('click', ()=>{
+  const canvas = document.getElementById('draw-canvas');
+  const dataUrl = canvas.toDataURL('image/png');
+  if(drawTarget === 'note'){
+    insertAtEditor(`<img src="${dataUrl}">`);
+  }else{
+    const judul = document.getElementById('g-judul').value.trim();
+    addGalleryItem(judul, dataUrl);
+    document.getElementById('g-judul').value = '';
+  }
+  closeDrawPad();
+  clearDrawPad();
+});
+
+setupDrawCanvas();
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(e=>console.error('SW gagal daftar', e));
+  });
+}
+setAuthMode('login');
+checkLogin();
+</script>
+</body>
+</html>
